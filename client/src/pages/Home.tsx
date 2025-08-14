@@ -4,7 +4,7 @@ import { SERVER_URL } from '../config';
 
 interface GameSettings {
   playerCount: 2 | 3;
-  winCondition: 5 | 6;
+  winCondition: 4 | 5 | 6;
   boardSize: 15 | 19;
 }
 
@@ -165,6 +165,17 @@ const Home: React.FC = () => {
                 Win Condition:
               </label>
               <div className="flex space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setGameSettings(prev => ({ ...prev, winCondition: 4 }))}
+                  className={`flex-1 py-1 px-2 text-xs rounded border transition-colors ${
+                    gameSettings.winCondition === 4 
+                      ? 'bg-blue-600 text-white border-blue-600' 
+                      : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
+                  }`}
+                >
+                  4 in a row
+                </button>
                 <button
                   type="button"
                   onClick={() => setGameSettings(prev => ({ ...prev, winCondition: 5 }))}

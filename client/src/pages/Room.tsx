@@ -18,7 +18,7 @@ interface GameState {
   isDraw: boolean;
   settings: {
     playerCount: 2 | 3;
-    winCondition: 5 | 6;
+    winCondition: 4 | 5 | 6;
     boardSize: 15 | 19;
   };
 }
