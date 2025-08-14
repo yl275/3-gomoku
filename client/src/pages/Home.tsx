@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const SERVER_URL = 'http://localhost:4000';
+import { SERVER_URL } from '../config';
 
 interface GameSettings {
   playerCount: 2 | 3;

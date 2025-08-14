@@ -1,0 +1,25 @@
+services:
+  # 后端 Web Service
+  - type: web
+    name: gomoku-backend
+    env: node
+    plan: free
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://your-frontend-app.onrender.com  # 替换为你的前端URL
+
+  # 前端 Static Site
+  - type: web
+    name: gomoku-frontend
+    env: static
+    plan: free
+    buildCommand: cd client && npm install && npm run build
+    staticPublishPath: client/dist
+    envVars:
+      - key: VITE_SERVER_URL
+        value: https://your-backend-app.onrender.com  # 替换为你的后端URL 

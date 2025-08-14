@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
-
-const SERVER_URL = 'http://localhost:4000';
+import { SERVER_URL, CONFIG } from '../config';
 
 interface Player {
   id: string;
@@ -56,10 +55,7 @@ const Room: React.FC = () => {
     console.log('Room ID:', roomId);
 
     // 连接到WebSocket服务器
-    const newSocket = io(SERVER_URL, {
-      transports: ['websocket', 'polling'],
-      timeout: 10000,
-    });
+    const newSocket = io(SERVER_URL, CONFIG.SOCKET_OPTIONS);
     setSocket(newSocket);
 
     // 加入房间

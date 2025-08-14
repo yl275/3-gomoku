@@ -1,16 +1,20 @@
 {
-  "name": "server",
+  "name": "gomoku-server",
   "version": "1.0.0",
   "main": "index.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "nodemon index.js",
     "start": "node index.js",
+    "build": "echo 'No build step required'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["gomoku", "game", "multiplayer", "websocket"],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Gomoku multiplayer game server with Socket.IO",
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^5.1.0",

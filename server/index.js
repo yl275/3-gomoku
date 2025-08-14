@@ -8,18 +8,57 @@ const { customAlphabet } = require("nanoid");
 const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
 
 const app = express();
+
+// CORS配置 - 允许前端域名
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173", 
+  "https://your-frontend-app.onrender.com", // 替换为你的前端Render域名
+  process.env.FRONTEND_URL // 环境变量中的前端URL
+].filter(Boolean);
+
 app.use(cors({
-  origin: "*",
+  origin: function (origin, callback) {
+    // 允许没有origin的请求（比如移动端应用）
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
 app.use(express.json());
 
+// 健康检查端点 - Render需要这个
+app.get("/health", (req, res) => {
+  res.status(200).json({ 
+    status: "ok", 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+// 根路径响应
+app.get("/", (req, res) => {
+  res.json({ 
+    message: "Gomoku Game Server is running!",
+    version: "1.0.0",
+    endpoints: {
+      health: "/health",
+      createRoom: "/api/create-room"
+    }
+  });
+});
+
 const server = createServer(app);
 const io = new Server(server, {
   cors: { 
-    origin: "*", 
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true
   },
