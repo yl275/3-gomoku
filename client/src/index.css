@@ -1,0 +1,135 @@
+@import "tailwindcss";
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: transparent;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: transparent;
+  }
+}
+
+/* Gomoku Board Styles */
+.gomoku-board {
+  background: linear-gradient(45deg, #fef3c7 25%, transparent 25%), 
+              linear-gradient(-45deg, #fef3c7 25%, transparent 25%), 
+              linear-gradient(45deg, transparent 75%, #fef3c7 75%), 
+              linear-gradient(-45deg, transparent 75%, #fef3c7 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+}
+
+/* Board lines */
+.board-line {
+  background-color: #92400e;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Piece styles */
+.piece-black {
+  background: radial-gradient(circle at 30% 30%, #374151, #111827);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid #1f2937;
+  padding: 0 !important;
+}
+
+.piece-white {
+  background: radial-gradient(circle at 30% 30%, #ffffff, #e5e7eb);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid #d1d5db;
+  padding: 0 !important;
+}
+
+.piece-third {
+  background: radial-gradient(circle at 30% 30%, #10b981, #059669);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  border: 1px solid #047857;
+  padding: 0 !important;
+}
+
+/* Intersection point hover effect */
+.intersection-point {
+  background-color: transparent;
+  padding: 0 !important;
+}
+
+.intersection-point:hover {
+  background-color: rgba(251, 191, 36, 0.3);
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+}
+
+/* Ensure all piece buttons are perfectly circular */
+button[class*="piece-"], button.intersection-point {
+  padding: 0 !important;
+  border-radius: 50% !important;
+  min-width: 24px !important;
+  min-height: 24px !important;
+  width: 24px !important;
+  height: 24px !important;
+}
