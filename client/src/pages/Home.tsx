@@ -105,7 +105,7 @@ const Home: React.FC = () => {
             <button
               type="submit"
               disabled={!roomCode.trim() || isLoading}
-              className="w-full bg-blue-600 text-white py-1 px-3 text-sm rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-2"
+              className="w-full text-dark py-1 px-3 text-sm rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-2"
             >
               {isLoading ? 'Joining...' : 'Join Room'}
             </button>
@@ -126,7 +126,7 @@ const Home: React.FC = () => {
       ) : (
         <div className="w-full max-w-sm">
           <div className="mb-4">
-            <h2 className="text-lg font-semibold mb-3 text-gray-800">Game Settings</h2>
+            <h2 className="text-lg font-semibold mb-3 text-white">Game Settings</h2>
             
             {/* Player Count */}
             <div className="mb-3">

@@ -62,19 +62,6 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: transparent;
-  }
-}
-
 /* Gomoku Board Styles */
 .gomoku-board {
   background: linear-gradient(45deg, #fef3c7 25%, transparent 25%), 
