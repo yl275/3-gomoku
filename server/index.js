@@ -4,7 +4,7 @@ const { createServer } = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
 const { customAlphabet } = require("nanoid");
-
+const path = require('path');
 const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
 
 const app = express();
@@ -53,6 +53,12 @@ app.get("/", (req, res) => {
       createRoom: "/api/create-room"
     }
   });
+});
+
+app.use(express.static(path.join(__dirname, 'client/build')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
 });
 
 const server = createServer(app);
