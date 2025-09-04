@@ -8,6 +8,7 @@ interface Player {
   name: string;
   symbol: 'X' | 'O' | 'T';
   isCurrentTurn: boolean;
+  isConnected: boolean; // Added isConnected property
 }
 
 interface GameState {
@@ -39,10 +40,7 @@ const Room: React.FC = () => {
       boardSize: 15
     }
   });
-  const [players, setPlayers] = useState<Player[]>([
-    { id: '1', name: 'Player 1', symbol: 'X', isCurrentTurn: true },
-    { id: '2', name: 'Player 2', symbol: 'O', isCurrentTurn: false }
-  ]);
+  const [players, setPlayers] = useState<Player[]>([]);
   const [mySide, setMySide] = useState<'black' | 'white' | 'green' | 'spectator' | null>(null);
   const [isMyTurn, setIsMyTurn] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
@@ -79,16 +77,15 @@ const Room: React.FC = () => {
 
     // 监听加入房间结果
     newSocket.on('joined', (data: any) => {
-      console.log('Joined room:', data);
       setMySide(data.side);
       
       // 转换服务器数据格式到前端格式
       const board = data.board.map((row: number[]) => 
         row.map((cell: number) => {
           if (cell === 0) return null;
-          if (cell === 1) return 'X'; // 黑棋
-          if (cell === 2) return 'O'; // 白棋
-          if (cell === 3) return 'T'; // 第三玩家
+          if (cell === 1) return 'X';
+          if (cell === 2) return 'O';
+          if (cell === 3) return 'T';
           return null;
         })
       );
@@ -104,8 +101,62 @@ const Room: React.FC = () => {
       setIsMyTurn(
         (data.side === 'black' && data.turn === 1) || 
         (data.side === 'white' && data.turn === 2) ||
-        (data.side === 'third' && data.turn === 3)
+        (data.side === 'green' && data.turn === 3)
       );
+
+      // 基于设置立即创建玩家列表
+      const playerCount = data.settings?.playerCount || 2;
+      const blackPlayer: Player = {
+        id: '1',
+        name: data.side === 'black' ? 'You (Black)' : 'Black Player',
+        symbol: 'X',
+        isCurrentTurn: data.turn === 1,
+        isConnected: !!data.players?.black
+      };
+      const whitePlayer: Player = {
+        id: '2',
+        name: data.side === 'white' ? 'You (White)' : 'White Player',
+        symbol: 'O',
+        isCurrentTurn: data.turn === 2,
+        isConnected: !!data.players?.white
+      };
+      let playersList: Player[] = [blackPlayer, whitePlayer];
+      if (playerCount === 3) {
+        const thirdPlayer: Player = {
+          id: '3',
+          name: data.side === 'green' ? 'You (Green)' : 'Green Player',
+          symbol: 'T',
+          isCurrentTurn: data.turn === 3,
+          isConnected: !!data.players?.third
+        };
+        playersList = [blackPlayer, whitePlayer, thirdPlayer];
+      }
+      setPlayers(playersList);
+
+      // 请求房间状态，随后以服务器状态为准
+      newSocket.emit('get_room_state', { roomId });
+
+      // 超时兜底：若 1.5s 内仍未收到 room_state，则基于当前设置确保有 3 个玩家位
+      const ensureTimeout = setTimeout(() => {
+        if (playerCount === 3) {
+          setPlayers(prev => {
+            if (prev.length === 3) return prev;
+            const hasThird = prev.some(p => p.symbol === 'T');
+            if (hasThird) return prev;
+            const third: Player = {
+              id: '3',
+              name: 'Green Player',
+              symbol: 'T',
+              isCurrentTurn: data.turn === 3,
+              isConnected: !!data.players?.third
+            };
+            return [...prev, third];
+          });
+        }
+      }, 1500);
+
+      // 在 socket 关闭时清理
+      newSocket.once('room_state', () => clearTimeout(ensureTimeout));
     });
 
     // 监听房间状态更新
@@ -124,27 +175,34 @@ const Room: React.FC = () => {
         id: '1', 
         name: mySide === 'black' ? 'You (Black)' : 'Black Player', 
         symbol: 'X' as const, 
-        isCurrentTurn: data.turn === 1
+        isCurrentTurn: data.turn === 1,
+        isConnected: !!data.players?.black
       };
       
       const whitePlayer: Player = {
         id: '2', 
         name: mySide === 'white' ? 'You (White)' : 'White Player', 
         symbol: 'O' as const, 
-        isCurrentTurn: data.turn === 2
+        isCurrentTurn: data.turn === 2,
+        isConnected: !!data.players?.white
       };
 
-      const playersList = [blackPlayer, whitePlayer];
-
-      // 如果是三人游戏，添加第三玩家
+      // 根据游戏设置创建玩家列表 - 总是显示所有可能的玩家
+      let playersList: Player[] = [];
+      
       if (data.settings?.playerCount === 3) {
+        // 三人游戏：黑、白、绿 - 显示所有3个玩家
         const thirdPlayer: Player = {
           id: '3',
           name: mySide === 'green' ? 'You (Green)' : 'Green Player',
           symbol: 'T' as const,
-          isCurrentTurn: data.turn === 3
+          isCurrentTurn: data.turn === 3,
+          isConnected: !!data.players?.third
         };
-        playersList.push(thirdPlayer);
+        playersList = [blackPlayer, whitePlayer, thirdPlayer];
+      } else {
+        // 两人游戏：黑、白 - 显示2个玩家
+        playersList = [blackPlayer, whitePlayer];
       }
       
       setPlayers(playersList);
@@ -155,6 +213,14 @@ const Room: React.FC = () => {
         currentPlayer: data.turn === 1 ? 'X' : data.turn === 2 ? 'O' : 'T',
         settings: data.settings || prev.settings
       }));
+      
+      // 更新玩家连接状态
+      setPlayers(prev => prev.map(player => ({
+        ...player,
+        isConnected: (player.symbol === 'X' && !!data.players?.black) || 
+                    (player.symbol === 'O' && !!data.players?.white) || 
+                    (player.symbol === 'T' && !!data.players?.third)
+      })));
       
       console.log('Room state updated - turn:', data.turn, 'allConnected:', allConnected);
     });
@@ -192,7 +258,10 @@ const Room: React.FC = () => {
         ...player,
         isCurrentTurn: (player.symbol === 'X' && data.turn === 'black') || 
                       (player.symbol === 'O' && data.turn === 'white') ||
-                      (player.symbol === 'T' && data.turn === 'green')
+                      (player.symbol === 'T' && data.turn === 'green'),
+        isConnected: (player.symbol === 'X' && !!data.players?.black) || 
+                    (player.symbol === 'O' && !!data.players?.white) || 
+                    (player.symbol === 'T' && !!data.players?.third)
       })));
       
       console.log('Turn changed to:', data.turn, 'currentPlayer:', currentPlayer);
@@ -485,30 +554,60 @@ const Room: React.FC = () => {
           <div className="bg-amber-100 rounded-lg p-4 border border-amber-300">
             <h3 className="font-semibold mb-3 text-amber-900">Players</h3>
             <div className="space-y-2">
-              {players.map((player) => (
-                <div
-                  key={player.id}
-                  className={`flex items-center justify-between p-2 rounded ${
-                    player.isCurrentTurn && !gameState.gameOver ? 'bg-blue-100 border border-blue-200' : 'bg-amber-50'
-                  }`}
-                >
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-3 h-3 rounded-full ${
-                      player.symbol === 'X' ? 'bg-gray-800' : 
-                      player.symbol === 'O' ? 'bg-white border border-gray-300' : 
-                      'bg-green-500'
-                    }`}></div>
-                    <span className="text-sm font-medium text-amber-900">{player.name}</span>
-                  </div>
-                  <span className={`text-sm font-bold ${
-                    player.symbol === 'X' ? 'text-gray-800' : 
-                    player.symbol === 'O' ? 'text-gray-600' : 
-                    'text-green-600'
-                  }`}>
-                    {player.symbol}
-                  </span>
+              {players.length === 0 ? (
+                <div className="text-center py-4">
+                  <p className="text-sm text-amber-600">Loading players...</p>
                 </div>
-              ))}
+              ) : (
+                <>
+                  {/* Black Player */}
+                  <div className={`flex items-center justify-between p-2 rounded ${
+                    gameState.currentPlayer === 'X' && !gameState.gameOver ? 'bg-blue-100 border border-blue-200' : 'bg-amber-50'
+                  }`}>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 rounded-full bg-gray-800"></div>
+                      <span className="text-sm font-medium text-amber-900">
+                        {players.find(p => p.symbol === 'X')?.name || 'Black Player'}
+                      </span>
+                      <div className={`w-2 h-2 rounded-full ${players.find(p => p.symbol === 'X')?.isConnected ? 'bg-green-500' : 'bg-gray-300'}`} 
+                           title={players.find(p => p.symbol === 'X')?.isConnected ? 'Connected' : 'Not connected'}></div>
+                    </div>
+                    <span className="text-sm font-bold text-gray-800">X</span>
+                  </div>
+
+                  {/* White Player */}
+                  <div className={`flex items-center justify-between p-2 rounded ${
+                    gameState.currentPlayer === 'O' && !gameState.gameOver ? 'bg-blue-100 border border-blue-200' : 'bg-amber-50'
+                  }`}>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 rounded-full bg-white border border-gray-300"></div>
+                      <span className="text-sm font-medium text-amber-900">
+                        {players.find(p => p.symbol === 'O')?.name || 'White Player'}
+                      </span>
+                      <div className={`w-2 h-2 rounded-full ${players.find(p => p.symbol === 'O')?.isConnected ? 'bg-green-500' : 'bg-gray-300'}`} 
+                           title={players.find(p => p.symbol === 'O')?.isConnected ? 'Connected' : 'Not connected'}></div>
+                    </div>
+                    <span className="text-sm font-bold text-gray-600">O</span>
+                  </div>
+
+                  {/* Green Player (only show when 3 players) */}
+                  {gameState.settings.playerCount === 3 && (
+                    <div className={`flex items-center justify-between p-2 rounded ${
+                      gameState.currentPlayer === 'T' && !gameState.gameOver ? 'bg-blue-100 border border-blue-200' : 'bg-amber-50'
+                    }`}>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span className="text-sm font-medium text-amber-900">
+                          {players.find(p => p.symbol === 'T')?.name || 'Green Player'}
+                        </span>
+                        <div className={`w-2 h-2 rounded-full ${players.find(p => p.symbol === 'T')?.isConnected ? 'bg-green-500' : 'bg-gray-300'}`} 
+                             title={players.find(p => p.symbol === 'T')?.isConnected ? 'Connected' : 'Not connected'}></div>
+                      </div>
+                      <span className="text-sm font-bold text-green-600">T</span>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
 
