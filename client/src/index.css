@@ -120,3 +120,22 @@ button[class*="piece-"], button.intersection-point {
   width: 24px !important;
   height: 24px !important;
 }
+
+/* Last move highlight styles */
+.piece-last-move {
+  border: 3px solid #fbbf24 !important; /* 金色边框 */
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.8), 
+              0 0 20px rgba(251, 191, 36, 0.4) !important; /* 发光效果 */
+  animation: last-move-pulse 2s ease-in-out infinite; /* 脉冲动画 */
+}
+
+@keyframes last-move-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.8), 
+                0 0 20px rgba(251, 191, 36, 0.4);
+  }
+  50% { 
+    box-shadow: 0 0 16px rgba(251, 191, 36, 1), 
+                0 0 24px rgba(251, 191, 36, 0.6);
+  }
+}

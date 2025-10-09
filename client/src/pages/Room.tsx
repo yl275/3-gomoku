@@ -17,6 +17,7 @@ interface GameState {
   winner: string | null;
   gameOver: boolean;
   isDraw: boolean;
+  lastMove: { x: number; y: number } | null;
   settings: {
     playerCount: 2 | 3;
     winCondition: 4 | 5 | 6;
@@ -34,6 +35,7 @@ const Room: React.FC = () => {
     winner: null,
     gameOver: false,
     isDraw: false,
+    lastMove: null,
     settings: {
       playerCount: 2,
       winCondition: 5,
@@ -94,6 +96,7 @@ const Room: React.FC = () => {
         ...prev,
         board,
         currentPlayer: data.turn === 1 ? 'X' : data.turn === 2 ? 'O' : 'T',
+        lastMove: null,
         settings: data.settings || prev.settings
       }));
 
@@ -236,7 +239,8 @@ const Room: React.FC = () => {
         newBoard[y][x] = symbol;
         return {
           ...prev,
-          board: newBoard
+          board: newBoard,
+          lastMove: { x, y } // 更新最后一步位置
         };
       });
     });
@@ -296,6 +300,7 @@ const Room: React.FC = () => {
         winner: null,
         gameOver: false,
         isDraw: false,
+        lastMove: null,
         settings: gameState.settings
       });
       
@@ -455,6 +460,7 @@ const Room: React.FC = () => {
                         ${cell === 'O' ? 'piece-white' : ''}
                         ${cell === 'T' ? 'piece-third' : ''}
                         ${cell === null ? 'intersection-point' : ''}
+                        ${gameState.lastMove?.x === colIndex && gameState.lastMove?.y === rowIndex ? 'piece-last-move' : ''}
                         ${!isMyTurn || !allPlayersConnected || gameState.gameOver || cell !== null ? 'cursor-not-allowed' : 'cursor-pointer'}
                         transition-all duration-200
                       `}
