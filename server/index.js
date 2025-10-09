@@ -55,7 +55,6 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use(express.static(path.join(__dirname, '../client/dist')));
 
 const server = createServer(app);
 const io = new Server(server, {
@@ -157,9 +156,7 @@ app.post("/api/create-room", (req, res) => {
   res.json({ roomId });
 });
 
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
-});
+
 
 // Socket 逻辑
 io.on("connection", (socket) => {
@@ -372,6 +369,16 @@ io.on("connection", (socket) => {
   });
 });
 
+// Serve static files first
+app.use(express.static(path.join(__dirname, '../client/dist')));
+
+// SPA catch-all route for all other GET requests
+// Must be AFTER all API routes, so API calls are not intercepted
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
+});
+
+// Start server
 server.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
 });
