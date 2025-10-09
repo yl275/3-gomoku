@@ -13,8 +13,8 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173", 
-  "https://your-frontend-app.onrender.com", // 替换为你的前端Render域名
-  process.env.FRONTEND_URL // 环境变量中的前端URL
+  "https://your-frontend-app.onrender.com", 
+  process.env.FRONTEND_URL
 ].filter(Boolean);
 
 app.use(cors({
@@ -56,10 +56,6 @@ app.get("/", (req, res) => {
 });
 
 app.use(express.static(path.join(__dirname, '../client/dist')));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
-});
 
 const server = createServer(app);
 const io = new Server(server, {
@@ -159,6 +155,10 @@ app.post("/api/create-room", (req, res) => {
   });
 
   res.json({ roomId });
+});
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
 });
 
 // Socket 逻辑
