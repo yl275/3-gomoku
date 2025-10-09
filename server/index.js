@@ -13,7 +13,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173", 
-  "https://your-frontend-app.onrender.com", 
+  "https://three-gomoku.onrender.com", // 你的实际Render域名
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
@@ -157,7 +157,7 @@ app.post("/api/create-room", (req, res) => {
   res.json({ roomId });
 });
 
-app.get('*', (req, res) => {
+app.get('/*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
 });
 
