@@ -374,8 +374,7 @@ app.use(express.static(path.join(__dirname, '../client/dist')));
 
 // SPA catch-all route for all other GET requests
 // Must be AFTER all API routes, so API calls are not intercepted
-const { pathToRegexp } = require('path-to-regexp');
-app.get(pathToRegexp('/*'), (req, res) => {
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
 });
 
