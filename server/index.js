@@ -17,11 +17,9 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 function isAllowedOrigin(origin) {
-  // 允许没有origin的请求（例如健康检查）
   if (!origin) return true;
   if (allowedOrigins.includes(origin)) return true;
 
-  // Blueprint部署时，Render会分配随机 *.onrender.com 域名
   try {
     const { hostname } = new URL(origin);
     if (hostname.endsWith(".onrender.com")) return true;
