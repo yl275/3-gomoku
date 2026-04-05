@@ -47,6 +47,32 @@ const Room: React.FC = () => {
   const [isMyTurn, setIsMyTurn] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [allPlayersConnected, setAllPlayersConnected] = useState(false);
+  const [viewportSize, setViewportSize] = useState(() => ({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1280,
+    height: typeof window !== 'undefined' ? window.innerHeight : 720
+  }));
+
+  useEffect(() => {
+    const handleResize = () => {
+      setViewportSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isMobileLayout = viewportSize.width < 1024;
+  const boardSize = gameState.settings.boardSize;
+  const desktopCellSize = 32;
+  const mobileMaxBoardWidth = Math.max(220, viewportSize.width - 24);
+  const mobileMaxBoardHeight = Math.max(220, viewportSize.height - 260);
+  const mobileCellSize = Math.max(14, Math.floor(Math.min(mobileMaxBoardWidth, mobileMaxBoardHeight) / boardSize));
+  const cellSize = isMobileLayout ? mobileCellSize : desktopCellSize;
+  const pieceSize = Math.max(10, Math.floor(cellSize * 0.75));
+  const boardPixelSize = boardSize * cellSize;
 
   useEffect(() => {
     if (!roomId) return;
@@ -391,58 +417,59 @@ const Room: React.FC = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-amber-100">
+    <div className="h-screen flex flex-col overflow-y-auto bg-amber-100 lg:overflow-hidden">
       {/* Header */}
-      <div className="bg-amber-200 shadow-sm border-b border-amber-300 px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+      <div className="bg-amber-200 shadow-sm border-b border-amber-300 px-3 py-2 sm:px-4 sm:py-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center space-x-2 sm:space-x-4">
             <button
               onClick={() => navigate('/')}
-              className="text-amber-800 hover:text-amber-900 transition-colors"
+              className="text-sm text-amber-800 hover:text-amber-900 transition-colors"
             >
               ← Back
             </button>
-            <h1 className="text-xl font-semibold text-amber-900">Room: {roomId}</h1>
+            <h1 className="truncate text-sm font-semibold text-amber-900 sm:text-xl">Room: {roomId}</h1>
             <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
           </div>
           <button
             onClick={copyRoomCode}
-            className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+            className="px-2 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-md hover:bg-blue-700 transition-colors"
           >
             Copy Room Code
           </button>
         </div>
       </div>
 
-      <div className="flex-1 flex">
+      <div className="flex-1 flex flex-col lg:flex-row">
         {/* Game Board */}
-        <div className="flex-1 flex items-center justify-center p-4">
-          <div className="bg-amber-200 rounded-lg shadow-lg p-6 border-2 border-amber-300">
+        <div className="flex-1 flex items-center justify-center p-2 sm:p-4">
+          <div className="bg-amber-200 rounded-lg shadow-lg p-2 sm:p-6 border-2 border-amber-300">
             {/* Traditional Gomoku Board with Lines */}
-            <div className="relative bg-amber-100 p-4 rounded border border-amber-500 gomoku-board">
+            <div className="relative bg-amber-100 p-2 sm:p-4 rounded border border-amber-500 gomoku-board">
               {/* Grid Lines */}
               <div 
                 className="relative"
                 style={{
-                  width: `${gameState.settings.boardSize * 32}px`,
-                  height: `${gameState.settings.boardSize * 32}px`
+                  width: `${boardPixelSize}px`,
+                  height: `${boardPixelSize}px`,
+                  ['--cell-size' as string]: `${pieceSize}px`
                 }}
               >
                 {/* Horizontal Lines */}
-                {Array.from({ length: gameState.settings.boardSize }, (_, i) => (
+                {Array.from({ length: boardSize }, (_, i) => (
                   <div
                     key={`h-${i}`}
                     className="absolute w-full h-px board-line"
-                    style={{ top: `${i * 32}px` }}
+                    style={{ top: `${i * cellSize}px` }}
                   />
                 ))}
                 
                 {/* Vertical Lines */}
-                {Array.from({ length: gameState.settings.boardSize }, (_, i) => (
+                {Array.from({ length: boardSize }, (_, i) => (
                   <div
                     key={`v-${i}`}
                     className="absolute h-full w-px board-line"
-                    style={{ left: `${i * 32}px` }}
+                    style={{ left: `${i * cellSize}px` }}
                   />
                 ))}
                 
@@ -454,7 +481,7 @@ const Room: React.FC = () => {
                       onClick={() => handleCellClick(rowIndex, colIndex)}
                       disabled={!isMyTurn || !allPlayersConnected || gameState.gameOver || cell !== null}
                       className={`
-                        absolute w-6 h-6 rounded-full flex items-center justify-center
+                        absolute rounded-full flex items-center justify-center
                         transform -translate-x-1/2 -translate-y-1/2
                         ${cell === 'X' ? 'piece-black' : ''}
                         ${cell === 'O' ? 'piece-white' : ''}
@@ -465,8 +492,12 @@ const Room: React.FC = () => {
                         transition-all duration-200
                       `}
                       style={{
-                        left: `${colIndex * 32}px`,
-                        top: `${rowIndex * 32}px`
+                        left: `${colIndex * cellSize}px`,
+                        top: `${rowIndex * cellSize}px`,
+                        width: `${pieceSize}px`,
+                        height: `${pieceSize}px`,
+                        minWidth: `${pieceSize}px`,
+                        minHeight: `${pieceSize}px`
                       }}
                       title={`${rowIndex},${colIndex} - My turn: ${isMyTurn}, All connected: ${allPlayersConnected}, Game over: ${gameState.gameOver}, Empty: ${cell === null}`}
                     >
@@ -480,7 +511,7 @@ const Room: React.FC = () => {
         </div>
 
         {/* Sidebar */}
-        <div className="w-80 bg-amber-200 border-l border-amber-300 p-4 space-y-4">
+        <div className="w-full lg:w-80 bg-amber-200 border-t lg:border-t-0 lg:border-l border-amber-300 p-3 sm:p-4 space-y-3 sm:space-y-4">
           {/* Connection Status */}
           <div className="bg-amber-100 rounded-lg p-4 border border-amber-300">
             <h3 className="font-semibold mb-3 text-amber-900">Connection</h3>

@@ -32,8 +32,7 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
+  display: block;
   min-width: 320px;
   min-height: 100vh;
 }
@@ -115,10 +114,10 @@ button:focus-visible {
 button[class*="piece-"], button.intersection-point {
   padding: 0 !important;
   border-radius: 50% !important;
-  min-width: 24px !important;
-  min-height: 24px !important;
-  width: 24px !important;
-  height: 24px !important;
+  min-width: var(--cell-size, 24px) !important;
+  min-height: var(--cell-size, 24px) !important;
+  width: var(--cell-size, 24px) !important;
+  height: var(--cell-size, 24px) !important;
 }
 
 /* Last move highlight styles */
