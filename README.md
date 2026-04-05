@@ -41,3 +41,13 @@ npm run dev
 The frontend will run on http://localhost:5173
 
 3. Open http://localhost:5173 in your browser to start playing
+
+## Deploy with Render Blueprint (One Click)
+
+This repository includes a `render.yaml`, so Render can provision and deploy automatically.
+
+1. Push this repo to GitHub.
+2. In Render, create a new **Blueprint** and select this repo.
+3. Render will read `render.yaml` and deploy the `gomoku` web service.
+
+After deployment, open your Render service URL and start playing.

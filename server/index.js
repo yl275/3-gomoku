@@ -12,17 +12,29 @@ const app = express();
 // CORS配置 - 允许前端域名
 const allowedOrigins = [
   "http://localhost:3000",
-  "http://localhost:5173", 
-  "https://three-gomoku.onrender.com", // 你的实际Render域名
+  "http://localhost:5173",
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
+function isAllowedOrigin(origin) {
+  // 允许没有origin的请求（例如健康检查）
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+
+  // Blueprint部署时，Render会分配随机 *.onrender.com 域名
+  try {
+    const { hostname } = new URL(origin);
+    if (hostname.endsWith(".onrender.com")) return true;
+  } catch (_error) {
+    return false;
+  }
+
+  return false;
+}
+
 app.use(cors({
   origin: function (origin, callback) {
-    // 允许没有origin的请求（比如移动端应用）
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (isAllowedOrigin(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -59,7 +71,13 @@ app.get("/", (req, res) => {
 const server = createServer(app);
 const io = new Server(server, {
   cors: { 
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      if (isAllowedOrigin(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by Socket.IO CORS"));
+      }
+    },
     methods: ["GET", "POST"],
     credentials: true
   },

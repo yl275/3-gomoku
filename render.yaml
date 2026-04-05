@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: gomoku
+    runtime: node
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /health
+    buildCommand: npm install --prefix client && npm run build --prefix client && npm install --prefix server
+    startCommand: npm start --prefix server
+    envVars:
+      - key: NODE_VERSION
+        value: 20
