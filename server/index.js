@@ -53,12 +53,13 @@ app.get("/health", (req, res) => {
   });
 });
 
-// 根路径响应
-app.get("/", (req, res) => {
+// API信息端点
+app.get("/api", (req, res) => {
   res.json({ 
     message: "Gomoku Game Server is running!",
     version: "1.0.0",
     endpoints: {
+      api: "/api",
       health: "/health",
       createRoom: "/api/create-room"
     }
